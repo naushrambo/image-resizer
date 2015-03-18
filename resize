@@ -1,0 +1,191 @@
+<?php
+    
+if(isset($_REQUEST['submit']))
+	{
+	 
+       $files = glob('../tools/resize/*'); // get all file names
+foreach($files as $file){ // iterate files
+  if(is_file($file))
+  //echo $file;
+    unlink($file); // delete file
+}
+
+       $w = $_POST['width'];
+       $h = $_POST['height'];
+       $slider = img_upload('uploaded_file',"resized by naushrambo",'resize',$w,$h);
+       $label = "Save the image, It will get deleted immediately from our server.";
+
+
+    }else{
+        
+        $slider = "../images/logo.png";
+    }
+
+   
+
+function img_upload($img,$name,$loc,$w,$h){
+   // print "sda.$w.$h.".$img;
+    
+    define ("MAX_SIZE","1500");
+// print "1";
+ $errors=0;
+ 
+ if($_SERVER["REQUEST_METHOD"] == "POST")
+ {
+     
+        $image =$_FILES[$img]["name"];
+      // print $image;
+ $uploadedfile = $_FILES[$img]['tmp_name'];
+ 
+  //print "2";
+  if ($image) 
+  { 
+    //  print "..3";
+  $filename = stripslashes($_FILES[$img]['name']);
+      // print $filename;
+        $extension = getExtension($filename);
+        //print $extension;
+  $extension = strtolower($extension);
+  //print $extension;
+ if (($extension != "jpg") && ($extension != "jpeg") 
+&& ($extension != "png") && ($extension != "gif")) 
+  {
+    //   print "4";
+echo ' Unknown Image extension ';
+$errors=1;
+  }
+ else
+{
+     //print "5";
+   $size=filesize($_FILES[$img]['tmp_name']);
+ 
+if ($size > MAX_SIZE*1024)
+{
+ echo "You have exceeded the size limit";
+ $errors=1;
+}
+ 
+if($extension=="jpg" || $extension=="jpeg" )
+{
+$uploadedfile = $_FILES[$img]['tmp_name'];
+$src = imagecreatefromjpeg($uploadedfile);
+//print "6";
+}
+else if($extension=="png")
+{
+    echo "its png........../n";
+$uploadedfile = $_FILES[$img]['tmp_name'];
+$src = imagecreatefrompng($uploadedfile);
+
+
+
+
+
+}
+else 
+{
+$src = imagecreatefromgif($uploadedfile);
+}
+ 
+list($width,$height)=getimagesize($uploadedfile);
+
+//print $width."hhh".$height;
+//print "7";
+
+
+$newwidth=$w;
+$newheight=$h;//($height/$width)*$newwidth;
+$tmp=imagecreatetruecolor($newwidth,$newheight);
+
+
+
+
+
+
+
+
+//print "8";
+/*$newwidth1=250;
+$newheight1=($height/$width)*$newwidth1;
+$tmp1=imagecreatetruecolor($newwidth1,$newheight1);
+*/
+//print "9";
+imagecopyresampled($tmp,$src,0,0,0,0,$newwidth,$newheight,
+ $width,$height);
+/* print "10";
+imagecopyresampled($tmp1,$src,0,0,0,0,$newwidth1,$newheight1, 
+$width,$height);
+
+print "11";
+*/
+
+$img_name = $name."-".$_FILES[$img]['name'];
+$img_name = str_replace(" ", "-", $img_name);
+$img_name = str_replace("/", "-", $img_name);
+
+$filename = "/tools/".$loc."/". $img_name;
+//$filename1 = "../images/cruise/"."s". $_FILES[$img]['name'];
+//print "12";
+
+
+imagejpeg($tmp,"..".$filename,100);
+
+
+//imagejpeg($tmp1,$filename1,100);
+
+//print "13";
+imagedestroy($src);
+imagedestroy($tmp);
+//imagedestroy($tmp1);
+//print "14";
+}
+}
+}
+//If no errors registred, print the success message
+
+ if(isset($_POST['submit']) && !$errors) 
+ { echo "Image Uploaded Successfully!";
+return $filename;   // mysql_query("update SQL statement ");
+  
+
+ }
+ 
+
+ 
+
+
+
+ return $filename;
+
+}
+
+function getExtension($str) {
+
+         $i = strrpos($str,".");
+         if (!$i) { return ""; } 
+         $l = strlen($str) - $i;
+         $ext = substr($str,$i+1,$l);
+         return $ext;
+ }
+
+
+
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title></title>
+    </head>
+    <body>
+        <form action="" method="post" enctype="multipart/form-data" >
+      <input name="uploaded_file" type="file" required />*
+             <input name="width" type="text" required />*
+             <input name="height" type="text" required />*
+        <button name="submit" id="submit" > Submit</button>
+        </form>
+        <label><?php echo $label;?></label>
+        <img alt="image" src="<?php echo $slider;?>" />
+    </body>
+</html>
